@@ -3,38 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CRUD de Produtos | Loja de Informatica</title>
+    <title>Produtos | Loja de Informatica</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <main class="page">
       <header class="page-header">
-        <h1>Gerenciamento de Produtos</h1>
-        <p class="page-subtitle">Cadastre, edite e remova produtos da loja.</p>
+        <div>
+          <p class="eyebrow">Loja de Informatica</p>
+          <h1>Produtos</h1>
+        </div>
+        <p class="page-description">
+          Cadastre, edite e acompanhe os produtos da loja em uma tela simples.
+        </p>
       </header>
 
-      <div id="message" class="message" role="status" aria-live="polite"></div>
+      <p id="message" class="message" role="status" aria-live="polite"></p>
 
-      <section class="content-grid">
-        <section class="panel form-panel">
-          <div class="panel-header">
-            <div>
-              <p class="panel-label">Formulario</p>
-              <h2 id="form-title">Cadastrar Produto</h2>
-            </div>
+      <div class="layout">
+        <aside class="form-panel" aria-labelledby="form-title">
+          <div class="section-heading">
+            <h2 id="form-title">Novo produto</h2>
+            <p>Preencha os dados obrigatorios.</p>
           </div>
 
           <form id="produto-form" class="product-form">
             <input type="hidden" id="produto-id" />
 
             <div class="field">
-              <label for="nome">Nome do produto</label>
+              <label for="nome">Nome</label>
               <input
-                type="text"
                 id="nome"
                 name="nome"
-                placeholder="Ex: Mouse sem fio"
+                type="text"
                 minlength="3"
+                autocomplete="off"
+                placeholder="Mouse sem fio"
                 required
               />
             </div>
@@ -45,17 +49,17 @@
                 id="descricao"
                 name="descricao"
                 rows="4"
-                placeholder="Descreva o produto"
+                placeholder="Detalhes do produto"
               ></textarea>
             </div>
 
-            <div class="input-grid">
+            <div class="field-row">
               <div class="field">
                 <label for="preco">Preco</label>
                 <input
-                  type="number"
                   id="preco"
                   name="preco"
+                  type="number"
                   min="0.01"
                   step="0.01"
                   placeholder="0.00"
@@ -64,11 +68,11 @@
               </div>
 
               <div class="field">
-                <label for="categoriaId">ID da categoria</label>
+                <label for="categoriaId">Categoria</label>
                 <input
-                  type="number"
                   id="categoriaId"
                   name="categoriaId"
+                  type="number"
                   min="1"
                   step="1"
                   placeholder="1"
@@ -78,44 +82,34 @@
             </div>
 
             <div class="field">
-              <label for="imagem">Imagem opcional</label>
-              <input
-                type="file"
-                id="imagem"
-                name="imagem"
-                accept=".jpg,.jpeg,.png"
-              />
-              <p class="field-help">JPG e PNG.</p>
+              <label for="imagem">Imagem</label>
+              <input id="imagem" name="imagem" type="file" accept=".jpg,.jpeg,.png" />
+              <small>Usada apenas ao cadastrar.</small>
             </div>
 
-            <div class="form-actions">
-              <button type="submit" id="submit-button" class="btn btn-primary">
+            <div class="actions">
+              <button id="submit-button" class="button button-primary" type="submit">
                 Cadastrar
               </button>
-              <button
-                type="button"
-                id="cancel-edit"
-                class="btn btn-secondary"
-                hidden
-              >
-                Cancelar edicao
+              <button id="cancel-edit" class="button" type="button" hidden>
+                Cancelar
               </button>
             </div>
           </form>
-        </section>
+        </aside>
 
-        <section class="panel list-panel">
-          <div class="panel-header panel-header-row">
-            <div>
-              <p class="panel-label">Produtos</p>
-              <h2>Lista de Produtos</h2>
+        <section class="products-section" aria-labelledby="products-title">
+          <div class="list-header">
+            <div class="section-heading">
+              <h2 id="products-title">Lista de produtos</h2>
+              <p id="product-count">Carregando...</p>
             </div>
-            <span id="product-count" class="product-count">Carregando...</span>
+            <button id="refresh-button" class="button" type="button">Atualizar</button>
           </div>
 
-          <div id="product-list" class="product-list"></div>
+          <div id="product-list" class="product-list" aria-live="polite"></div>
         </section>
-      </section>
+      </div>
     </main>
 
     <script src="./script.js"></script>
