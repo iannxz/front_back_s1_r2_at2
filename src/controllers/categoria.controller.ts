@@ -1,72 +1,113 @@
-import { Request, Response } from "express"; 
+import { Request, Response } from "express";
 import { CategoriaService } from "../services/categoria.service";
+import {
+  badRequest,
+  notFound,
+  parseBoolean,
+  parsePositiveInteger,
+  requiredString,
+  serverError,
+} from "../utils/request";
 
 export class CategoriaController {
-  constructor(readonly _service = new CategoriaService()) { }
-    /**
-     * 
-     * @param req 
-     * @param res 
-     */
-    selecionarTodos = async (req: Request, res: Response) => {
-      try {
-        const categorias = await this._service.selecionarTodos();
-        res.status(200).json({"categorias": categorias});
-      } catch (error: unknown) {
-        res.status(500).json({ error: "Erro ao selecionar categorias", errorMessage: error instanceof Error ? error.message : "Erro desconhecido" });
-        console.error("Erro ao selecionar categorias:", error);
-      }
-    }
+  constructor(readonly _service = new CategoriaService()) {}
 
-    selecionarPorId = async (req: Request, res: Response) => {
-      try {
-        const id = Number(req.params.id);
-        const categoria = await this._service.selecionarPorId(id);
-        if (categoria) {
-          res.status(200).json({ categoria });
-        } else {
-          res.status(404).json({ message: "Categoria não encontrada" });
-        }
-      } catch (error: unknown) {
-        res.status(500).json({ error: "Erro ao selecionar categoria por ID", errorMessage: error instanceof Error ? error.message : "Erro desconhecido" });
-        console.error("Erro ao selecionar categoria por ID:", error);
-      }
+  selecionarTodos = async (_req: Request, res: Response) => {
+    try {
+      const categorias = await this._service.selecionarTodos();
+      return res.status(200).json({ categorias });
+    } catch (error: unknown) {
+      return serverError(res, "Erro ao selecionar categorias", error);
     }
+  };
 
-    criar = async (req: Request, res: Response) => {
-      try {
-        const { nome } = req.body;
-        const resultado = await this._service.criar(nome);
-        res.status(201).json({ message: "Categoria criada com sucesso", resultado });
-      } catch (error: unknown) {
-        res.status(500).json({ error: "Erro ao criar categoria", errorMessage: error instanceof Error ? error.message : "Erro desconhecido" });
-        console.error("Erro ao criar categoria:", error);
+  selecionarPorId = async (req: Request, res: Response) => {
+    try {
+      const id = parsePositiveInteger(req.params.id);
+      if (!id) {
+        return badRequest(res, "ID da categoria invalido.");
       }
-    }
 
-    editar = async (req: Request, res: Response) => {
-      try {
-        const { nome, ativo } = req.body;
-        const id = Number(req.params.id);
-        const alterado = await this._service.editar(id, nome, ativo);
-        res.status(200).json({ message: "Categoria editada com sucesso", alterado });
-      } catch (error: unknown) {
-        res.status(500).json({ error: "Erro ao editar categoria", errorMessage: error instanceof Error ? error.message : "Erro desconhecido" });
-        console.error("Erro ao editar categoria:", error);
+      const categoria = await this._service.selecionarPorId(id);
+      if (!categoria) {
+        return notFound(res, "Categoria nao encontrada.");
       }
-    }
 
-    deletar = async (req: Request, res: Response) => {
-      try {
-        const id = Number(req.params.id);
-        const deletado = await this._service.deletar(id);
-        if (deletado.affectedRows === 0) {
-          return res.status(404).json({ message: "Categoria não encontrada para deletar" });
-        }
-        res.status(200).json({ message: "Categoria deletada com sucesso", deletado });
-      } catch (error: unknown) {
-        res.status(500).json({ error: "Erro ao deletar categoria", errorMessage: error instanceof Error ? error.message : "Erro desconhecido" });
-        console.error("Erro ao deletar categoria:", error);
-      }
+      return res.status(200).json({ categoria });
+    } catch (error: unknown) {
+      return serverError(res, "Erro ao selecionar categoria por ID", error);
     }
-  }
+  };
+
+  criar = async (req: Request, res: Response) => {
+    try {
+      const nome = requiredString(req.body.nome, 3);
+      if (!nome) {
+        return badRequest(res, "Nome da categoria deve ter pelo menos 3 caracteres.");
+      }
+
+      const resultado = await this._service.criar(nome);
+      return res.status(201).json({
+        message: "Categoria criada com sucesso.",
+        id: resultado.insertId,
+      });
+    } catch (error: unknown) {
+      return serverError(res, "Erro ao criar categoria", error);
+    }
+  };
+
+  editar = async (req: Request, res: Response) => {
+    try {
+      const id = parsePositiveInteger(req.params.id);
+      const nome = requiredString(req.body.nome, 3);
+      const ativo = parseBoolean(req.body.ativo, true);
+
+      if (!id) {
+        return badRequest(res, "ID da categoria invalido.");
+      }
+
+      if (!nome) {
+        return badRequest(res, "Nome da categoria deve ter pelo menos 3 caracteres.");
+      }
+
+      if (ativo === null) {
+        return badRequest(res, "ativo deve ser booleano.");
+      }
+
+      const resultado = await this._service.editar(id, nome, ativo);
+      if (resultado.affectedRows === 0) {
+        return notFound(res, "Categoria nao encontrada para editar.");
+      }
+
+      return res.status(200).json({
+        message: "Categoria editada com sucesso.",
+        id,
+        alterados: resultado.affectedRows,
+      });
+    } catch (error: unknown) {
+      return serverError(res, "Erro ao editar categoria", error);
+    }
+  };
+
+  deletar = async (req: Request, res: Response) => {
+    try {
+      const id = parsePositiveInteger(req.params.id);
+      if (!id) {
+        return badRequest(res, "ID da categoria invalido.");
+      }
+
+      const resultado = await this._service.deletar(id);
+      if (resultado.affectedRows === 0) {
+        return notFound(res, "Categoria nao encontrada para deletar.");
+      }
+
+      return res.status(200).json({
+        message: "Categoria deletada com sucesso.",
+        id,
+        deletados: resultado.affectedRows,
+      });
+    } catch (error: unknown) {
+      return serverError(res, "Erro ao deletar categoria", error);
+    }
+  };
+}

@@ -1,16 +1,20 @@
 {
   "name": "loja-informatica",
   "version": "1.0.0",
-  "description": "",
-  "main": "server.ts",
+  "description": "API e front-end estatico para CRUD de produtos de uma loja de informatica.",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon --watch src --ext ts --exec ts-node src/server.ts"
+    "dev": "nodemon --watch src --ext ts --exec ts-node src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.0.0",
     "@types/node": "^25.5.0",
@@ -20,7 +24,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@types/cors": "^2.8.19",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",

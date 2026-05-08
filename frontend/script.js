@@ -1,5 +1,5 @@
-const API_URL = "http://localhost:3000/produtos";
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = getApiBaseUrl();
+const API_URL = `${BASE_URL}/produtos`;
 
 const form = document.getElementById("produto-form");
 const productIdInput = document.getElementById("produto-id");
@@ -15,6 +15,14 @@ const refreshButton = document.getElementById("refresh-button");
 const messageBox = document.getElementById("message");
 const productList = document.getElementById("product-list");
 const productCount = document.getElementById("product-count");
+
+function getApiBaseUrl() {
+  if (window.location.protocol.startsWith("http") && window.location.port === "3000") {
+    return window.location.origin;
+  }
+
+  return "http://localhost:3000";
+}
 
 function showMessage(text, type = "info") {
   messageBox.textContent = text;
@@ -71,6 +79,18 @@ async function readResponse(response) {
 
 function getErrorMessage(data, fallback) {
   return data.error || data.message || data.errorMessage || fallback;
+}
+
+function extractProducts(data) {
+  if (Array.isArray(data.produtos)) {
+    return data.produtos;
+  }
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return [];
 }
 
 function setSaving(isSaving) {
@@ -213,7 +233,7 @@ async function loadProducts(options = {}) {
       throw new Error(getErrorMessage(data, "Erro ao listar produtos."));
     }
 
-    renderProducts(Array.isArray(data.produtos) ? data.produtos : []);
+    renderProducts(extractProducts(data));
   } catch (error) {
     productCount.textContent = "Erro ao carregar";
     productList.appendChild(

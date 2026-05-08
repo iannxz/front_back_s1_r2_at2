@@ -1,12 +1,21 @@
 # CRUD Loja Informatica
 
-Este repositorio contem:
+Projeto academico de integracao Front-End + Back-End para uma loja de informatica.
 
-- backend em Node.js, TypeScript, Express e MySQL;
-- frontend estatico em `frontend/` com HTML, CSS e JavaScript puro;
-- CRUD completo de produtos consumindo a API real em portugues.
+A aplicacao possui uma API em Node.js, TypeScript, Express e MySQL, alem de um front-end estatico em HTML, CSS e JavaScript puro. A tela principal faz CRUD completo de produtos consumindo a API com `fetch()` e atualizando o DOM sem recarregar a pagina.
 
-## Estrutura principal
+## Tecnologias
+
+- HTML5, CSS3 e JavaScript puro
+- `fetch()` para consumo da API
+- Node.js
+- TypeScript
+- Express
+- MySQL com `mysql2`
+- CORS
+- Multer para upload opcional de imagem de produto
+
+## Estrutura
 
 ```text
 .
@@ -17,26 +26,30 @@ Este repositorio contem:
 |   |-- style.css
 |   |-- script.js
 |-- src/
+|   |-- config/
 |   |-- controllers/
+|   |-- database/
+|   |-- middleware/
+|   |-- models/
+|   |-- repository/
 |   |-- routes/
 |   |-- services/
-|   |-- repository/
+|   |-- utils/
 |   |-- server.ts
+|-- .env.example
 |-- package.json
 |-- README.md
 ```
 
-## Como rodar o backend
+## Instalacao
 
-### 1. Instale as dependencias
+Instale as dependencias:
 
 ```bash
 npm install
 ```
 
-### 2. Configure o arquivo `.env`
-
-Crie um arquivo `.env` na raiz do projeto com os valores do seu MySQL:
+Crie o arquivo `.env` na raiz do projeto. Use `.env.example` como base:
 
 ```env
 SERVER_PORT=3000
@@ -47,30 +60,47 @@ DB_PASSWORD=sua_senha
 DB_NAME=lojinha_informatica
 ```
 
-Importante:
+## Banco de dados
 
-- a variavel de porta usada pelo projeto e `SERVER_PORT`;
-- o script SQL deste repositorio cria o banco `lojinha_informatica`;
-- `DB_NAME` deve bater com o nome real do banco criado no MySQL.
-
-### 3. Execute o script SQL
-
-O script esta em `docs/database.sql`.
-
-Ele cria o banco `lojinha_informatica`, as tabelas e registros iniciais, incluindo mais de 5 produtos para a listagem da atividade.
-
-Exemplo:
+Execute o script `docs/database.sql` no MySQL:
 
 ```sql
 SOURCE docs/database.sql;
 ```
 
-Se preferir, abra o arquivo e execute o conteudo no seu cliente MySQL.
+O script cria o banco `lojinha_informatica`, recria as tabelas e insere dados iniciais:
 
-### 4. Inicie o servidor
+- 5 categorias
+- 6 produtos
+- 2 clientes
+- 2 vendedores
+
+Observacao: o script usa `DROP TABLE IF EXISTS`, entao ele limpa as tabelas atuais desse banco antes de recria-las.
+
+## Executando a API
+
+Modo desenvolvimento:
 
 ```bash
 npm run dev
+```
+
+Validar TypeScript:
+
+```bash
+npm run typecheck
+```
+
+Gerar build:
+
+```bash
+npm run build
+```
+
+Executar build:
+
+```bash
+npm start
 ```
 
 Servidor esperado:
@@ -79,125 +109,178 @@ Servidor esperado:
 http://localhost:3000
 ```
 
-## CORS
+Rota de saude:
 
-O backend foi ajustado para usar `cors()` em `src/server.ts`.
+```text
+GET http://localhost:3000/health
+```
 
-Isso permite abrir o front-end separado, por exemplo:
+## Executando o Front-End
 
-- clicando em `frontend/index.html`;
-- usando Live Server;
-- usando outro servidor estatico local.
+Com a API rodando, use uma das opcoes:
 
-## Como abrir o front-end
+- Acesse `http://localhost:3000` para abrir o front servido pelo Express.
+- Abra `frontend/index.html` no navegador.
+- Use Live Server apontando para a pasta `frontend/`.
 
-Com o backend rodando:
+O JavaScript usa a mesma origem quando a pagina esta em `localhost:3000`. Se for aberta fora da API, ele consome `http://localhost:3000`.
 
-1. Abra `frontend/index.html` no navegador.
-2. Ou rode o Live Server dentro da pasta `frontend/`.
-3. A interface ja consome `http://localhost:3000/produtos`.
-
-## Endpoints reais disponiveis
+## Endpoints
 
 ### Produtos
 
-| Metodo | Endpoint | Uso |
+| Metodo | Endpoint | Descricao |
 |---|---|---|
-| GET | `http://localhost:3000/produtos` | Lista todos os produtos |
-| GET | `http://localhost:3000/produtos/:id` | Busca um produto por ID |
-| POST | `http://localhost:3000/produtos` | Cria produto com `FormData` |
-| PATCH | `http://localhost:3000/produtos/:id` | Edita produto com JSON |
-| DELETE | `http://localhost:3000/produtos/:id` | Remove produto |
+| GET | `/produtos` | Lista produtos |
+| GET | `/produtos/:id` | Busca produto por ID |
+| POST | `/produtos` | Cria produto com `multipart/form-data` |
+| PATCH | `/produtos/:id` | Atualiza produto com JSON |
+| DELETE | `/produtos/:id` | Exclui produto |
 
-### Formato do GET `/produtos`
+Campos para criar produto via `FormData`:
+
+```text
+nome: string, obrigatorio
+descricao: string, opcional
+preco: number, obrigatorio
+categoriaId: number, obrigatorio
+imagem: file, opcional
+```
+
+Exemplo de atualizacao de produto:
 
 ```json
 {
-  "produtos": [
-    {
-      "id": 1,
-      "nomeprod": "Mouse Logitech GPro2",
-      "descricao": "Mouse gamer 8000p",
-      "valor": 89.9,
-      "imagem": null,
-      "idcategoria": 1,
-      "ativo": true,
-      "dataCad": "2026-01-01T00:00:00.000Z"
-    }
-  ]
+  "nome": "Mouse Gamer",
+  "descricao": "Mouse com sensor optico",
+  "preco": 149.9,
+  "categoriaId": 1
 }
 ```
 
-No JavaScript:
+### Categorias
 
-```js
-const response = await fetch("http://localhost:3000/produtos");
-const data = await response.json();
-const produtos = data.produtos;
-```
+| Metodo | Endpoint |
+|---|---|
+| GET | `/categorias` |
+| GET | `/categorias/:id` |
+| POST | `/categorias` |
+| PATCH | `/categorias/:id` |
+| DELETE | `/categorias/:id` |
 
-## Exemplo simples com fetch()
+Exemplo JSON:
 
-### GET
-
-```js
-async function buscarProdutos() {
-  const response = await fetch("http://localhost:3000/produtos");
-  const data = await response.json();
-  console.log(data.produtos);
+```json
+{
+  "nome": "Perifericos",
+  "ativo": true
 }
 ```
 
-### POST com FormData
+### Clientes
 
-```js
-async function criarProduto() {
-  const formData = new FormData();
-  formData.append("nome", "Headset Gamer");
-  formData.append("descricao", "Headset com microfone");
-  formData.append("preco", "199.90");
-  formData.append("categoriaId", "1");
+| Metodo | Endpoint |
+|---|---|
+| GET | `/clientes` |
+| GET | `/clientes/:id` |
+| POST | `/clientes` |
+| PATCH | `/clientes/:id` |
+| DELETE | `/clientes/:id` |
 
-  const response = await fetch("http://localhost:3000/produtos", {
-    method: "POST",
-    body: formData
-  });
+Exemplo JSON:
 
-  const data = await response.json();
-  console.log(data);
+```json
+{
+  "nome": "Ana Souza",
+  "email": "ana@email.com",
+  "telefone": "11999999999",
+  "cpf": "111.111.111-11",
+  "endereco": "Rua A, 100",
+  "ativo": true
 }
 ```
 
-### PATCH com JSON
+### Vendedores
 
-```js
-async function editarProduto(id) {
-  const response = await fetch(`http://localhost:3000/produtos/${id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      nome: "Produto editado",
-      descricao: "Descricao editada",
-      preco: Number(100),
-      categoriaId: Number(1)
-    })
-  });
+| Metodo | Endpoint |
+|---|---|
+| GET | `/vendedores` |
+| GET | `/vendedores/:id` |
+| POST | `/vendedores` |
+| PATCH | `/vendedores/:id` |
+| DELETE | `/vendedores/:id` |
 
-  const data = await response.json();
-  console.log(data);
+Exemplo JSON:
+
+```json
+{
+  "nome": "Carla Mendes",
+  "email": "carla@email.com",
+  "telefone": "11999999999",
+  "cpf": "333.333.333-33",
+  "comissao": 5,
+  "ativo": true
 }
 ```
 
-## Front-end da atividade
+### Pedidos
 
-O front-end criado em `frontend/` atende ao CRUD de produtos com:
+| Metodo | Endpoint |
+|---|---|
+| GET | `/pedidos` |
+| GET | `/pedidos/:id` |
+| GET | `/pedidos/cliente/:idcliente` |
+| POST | `/pedidos` |
+| PATCH | `/pedidos/:id` |
+| DELETE | `/pedidos/:id` |
 
-- HTML, CSS e JavaScript em arquivos separados;
-- `fetch()` com `GET`, `POST`, `PATCH` e `DELETE`;
-- `response.json()` e tratamento de erro com `try/catch`;
-- criacao dinamica de cards com `document.createElement()`;
-- manipulacao de `submit` do formulario e cliques nos botoes;
-- atualizacao da interface sem recarregar a pagina;
-- exibicao de imagem quando existir no backend.
+Exemplo JSON:
+
+```json
+{
+  "clienteId": 1,
+  "vendedorId": 1,
+  "status": "pendente",
+  "total": 0
+}
+```
+
+### Itens de pedido
+
+| Metodo | Endpoint |
+|---|---|
+| GET | `/itenspedidos/pedido/:idpedido` |
+| GET | `/itenspedidos/:id` |
+| POST | `/itenspedidos` |
+| PATCH | `/itenspedidos/:id` |
+| DELETE | `/itenspedidos/:id` |
+
+Exemplo JSON:
+
+```json
+{
+  "pedidoId": 1,
+  "produtoId": 1,
+  "quantidade": 2,
+  "precoUnitario": 89.9
+}
+```
+
+## Fluxo CRUD do Front-End
+
+1. Ao carregar a pagina, `frontend/script.js` faz `GET /produtos`.
+2. A resposta e convertida com `response.json()`.
+3. Os produtos sao renderizados dinamicamente com `document.createElement()`.
+4. O formulario envia `POST /produtos` para criar novos registros.
+5. O botao Editar preenche o formulario e envia `PATCH /produtos/:id`.
+6. O botao Excluir envia `DELETE /produtos/:id`.
+7. A lista e atualizada novamente via API, sem recarregar a pagina.
+
+## Observacoes importantes
+
+- O back-end usa CORS para permitir front e API em portas diferentes.
+- Uploads de imagem sao salvos em `uploads/images/`, pasta ignorada pelo Git.
+- Erros de validacao retornam `400`.
+- Registros nao encontrados retornam `404`.
+- Erros internos retornam JSON com status `500`.
+- A porta padrao documentada e `3000`; se alterar `SERVER_PORT`, ajuste tambem o acesso do front quando abrir fora do Express.
